@@ -1,0 +1,57 @@
+README file: bayesian-inversion-R source code
+
+-------------------------
+Overview of inverse model code
+-------------------------
+
+This Bayesian inverse model code is based loosely on NOAA CarbonTracker-Lagrange
+software (see: https://www.esrl.noaa.gov/gmd/ccgg/carbontracker-lagrange/), but
+written in the R programming language.
+
+Code can be run as-is, provided that the proper input files are supplied. See
+config.r file in inversion/ directory for more information. Required input
+files should be placed in the include/ directory:
+  prior_emiss.nc
+  prior_uncert.nc
+  lonlat_domain.rds
+  obs.rds
+  background.rds
+
+  (optional input files:)
+  outer_emiss.nc
+  bio_flux.nc
+  lonlat_outer.rds
+
+  NOTE: input NetCDF files (prior_emiss.nc, prior_uncert.nc, etc) should exist
+  in (lon x lat x time) format, with lon/lat values indicating center-of-cell,
+  and time values expressed as either POSIX time or seconds since R epoch
+  (1970-01-01 00:00:00 UTC).
+
+  obs.rds file should be formatted as an (n x 3) matrix where all observation
+   datapoints are be concatenated by rows, with the site code in column 1, the
+  timestamp in column 2, and data value in column 3. Data timestamps should
+  correspond to the observation resolution of the inversion, denoted in config.r.
+  The inversion code does internal processing and filtering of data to match the
+  observation time domain, so the supplied file can list as many datapoints as desired.
+   see example:
+(column names)  # SITECODE  OBS TIME (seconds since 1970-01-01 00:00:00)  OBS VALUE
+   (row 1)      # 'site1'          '[t1 number of seconds]'                 'X.XXX'
+   (row 2)      # 'site1'          '[t2 number of seconds]'                 'X.XXX'
+    (...)       #   ...                       ...                             ...
+   (row n)      # 'siteN'          '[tN number of seconds]'                 'X.XXX'
+
+   background.rds should be formatted similarly, but excluding SITECODE column.
+   see example:
+
+ (column names)  #  OBS TIME (seconds since 1970-01-01 00:00:00)   BG VALUE
+    (row 1)      #         '[t1 number of seconds]'                 'X.XXX'
+    (row 2)      #         '[t2 number of seconds]'                 'X.XXX'
+     (...)       #                    ...                             ...
+    (row n)      #         '[tN number of seconds]'                 'X.XXX'
+
+
+
+In addition, footprint files must be supplied in the footprints/ directory.
+Files should be in NetCDF format with dimensions (lon x lat x time). Source code
+is designed to work with files matching output format from STILT-R
+(https://uataq.github.io/stilt/)
