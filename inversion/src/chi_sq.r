@@ -119,7 +119,7 @@ E_inv <- solve(E)
 Chi_sq_s <- 0  #this is a variable to hold the value (shat - sp)^T * Q^-1 * (shat - sp)
 
 # this takes some time, so utilize print statements
-print("calculating Chi-squared_s using sparse-matrix method")
+print("calculating reduced Chi-squared using sparse-matrix method")
 
 # Loop through timesteps
 for (ii in 1:ntimes) {

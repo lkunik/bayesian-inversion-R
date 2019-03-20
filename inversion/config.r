@@ -27,11 +27,11 @@ compute_chi_sq <- F
 
 # Do we want to include estimated far-field contributions from an outer-domain
 # emission estimate in the background? (Need gridded outer-domain emission file)
-include_outer <- T
+include_outer <- F
 
 # Do we want to include estimated biological flux contributions in the background?
 # (Need gridded biogenic flux file)
-include_bio <- T
+include_bio <- F
 
 # ~~~~~~~~~~~~~~ Info files ~~~~~~~~~~~~~~#
 
@@ -39,7 +39,7 @@ include_bio <- T
 lonlat_domain_file <- paste0(include_dir, "lonlat_domain.rds")
 
 # lonlat_outer file - lists all lon/lat pairs in outer domain as look up table
-lonlat_outer_file <- paste0(include_dir, "lonlat_outer.rds")
+lonlat_outer_file <- NA#paste0(include_dir, "lonlat_outer.rds")
 
 # Prior emissions file
 prior_file <- paste0(include_dir, "prior_emiss.nc")
@@ -73,6 +73,11 @@ bg_file <- paste0(include_dir, "background.rds")
 #spatial grid resolution
 lon_res <- 0.01
 lat_res <- 0.01
+round_digs <- 1 + max(nchar(strsplit(as.character(lon_res), ".", fixed = TRUE)[[1]][[2]]),
+                  nchar(strsplit(as.character(lat_res), ".", fixed = TRUE)[[1]][[2]]))
+
+# footprint grid dimensions (T if dims are lon x lat, F if dims are lat x lon)
+foot_dim_lonxlat <- T
 
 # flux time range
 flux_year_start <- 2015

@@ -13,6 +13,13 @@ source("config.r")
 # get all files in the outer directory
 out_files <- paste0(out_path, list.files(out_path))
 
+if(!dir.exists("H/"))
+    dir.create("H/")
+
+if(!is.na(lonlat_outer_file) & !dir.exists("H_outer/"))
+    dir.create("H_outer/")
+
+
 if (clear_H) {
     # H files
     if (length(list.files("H/")) > 0) {
@@ -20,7 +27,7 @@ if (clear_H) {
     }
 
     # H files (outer domain)
-    if (length(list.files("H_outer/")) > 0) {
+    if (!is.na(lonlat_outer_file) & length(list.files("H_outer/")) > 0) {
         out_files <- c(out_files, paste0("H_outer/", list.files("H/")))
     }
 }

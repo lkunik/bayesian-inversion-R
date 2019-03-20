@@ -75,7 +75,7 @@ add_off_diags <- function(R, site_vec, datetimes, site, rmse, correlation_scale,
       R_decay <- R_Dt * rmse^2 #mutliply decay weights by the rmse error
       R[ioff_diag] <- R[ioff_diag] + R_decay[ioff_diag] #add to off-diags of R
     } else{
-      R[ioff_diag] <- rmse^2 #apply the unaltered RMSE value to the off-diagonals desired
+      R[ioff_diag] <- R[ioff_diag] + rmse^2 #apply the unaltered RMSE value to the off-diagonals desired
     }
     #return R
     R
@@ -142,10 +142,10 @@ aggregate_R <- function(R, site_vec, datetimes, site_vec_aggr, dates_aggr){
 
     } #end sites for-loop
 
-    R_aggr <- diag(R_aggr_diag)
+    R_aggregated <- diag(R_aggr_diag)
 
     #return R_aggr
-    R_aggr
+    R_aggregated
 }
 
 
@@ -189,7 +189,6 @@ Hsbio <- readRDS(Hsbio_file)
 
 # ~~~~~~~~~~~~~~~ R_part ~~~~~~~~~~~~~~~#
 R_part <- rep(rmse_part^2, nobs)
-# value = .1 ppm^2
 
 
 # ~~~~~~~~~~~~~~~ R_aggr ~~~~~~~~~~~~~~~#
@@ -205,7 +204,6 @@ R_bkgd <- rep(rmse_bkgd^2, nobs)
 
 
 # ~~~~~~~~~~~~~~~ R_transPBL ~~~~~~~~~~~~~~~#
-  #use percentage of mean anthropogenic signal
 R_transPBL <- rep(rmse_transPBL^2, nobs)
 
 
@@ -214,7 +212,7 @@ R_transWIND <- rep(rmse_transWIND^2, nobs)
 
 
 # ~~~~~~~~~~~~~~~ R_instr ~~~~~~~~~~~~~~~#
-R_instr <- rep(rmse_instr^2, nobs)  #we are not using physical instruments to obtain data, thus error here = 0 ppm^2
+R_instr <- rep(rmse_instr^2, nobs)
 
 # if extra instrument error for specific sites
 for(ii in 1:nsites){
@@ -271,12 +269,12 @@ if (aggregate_obs) {
     attributes(recep_times_aggr)$tzone <- "UTC"
 
     # turn into diagonal n x n matrix
-    R_aggr <- aggregate_R(R, recep_names, recep_times, recep_sites_aggr, recep_times_aggr)
+    R_aggregated <- aggregate_R(R, recep_names, recep_times, recep_sites_aggr, recep_times_aggr)
 
     # save R to file
     print("saving model data mismatch matrix to R.rds")
     filepath <- paste0(out_path, "R.rds")
-    saveRDS(R_aggr, filepath)
+    saveRDS(R_aggregated, filepath)
 
 } else {
 

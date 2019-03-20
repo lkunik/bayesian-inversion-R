@@ -16,11 +16,12 @@ if(!file.exists(z_file))
     stop("obs file (z.rds) must be created before running")
 
 Hsbio_file <- paste0(out_path, "Hs_bio.rds")
-if(!file.exists(Hsbio_file))
+if(include_bio & !file.exists(Hsbio_file))
     stop("biological enhancements file (Hs_bio.rds) must be created before running")
 
 z <- readRDS(z_file) #read observed enhancement file
-Hsbio <- readRDS(Hsbio_file) #read biological enhancement file
+if (include_bio)
+  Hsbio <- readRDS(Hsbio_file) #read biological enhancement file
 
 
 # define the overall vatrix containing all the details of component-level errors
@@ -102,10 +103,15 @@ R_arr <- rbind(R_arr, R_instr_info)
 
 # ~~~~~~~~~~~~~~~ R_bio ~~~~~~~~~~~~~~~#
 # Uncertainty introduced from including biospheric enhancement in measurements
-
-rmse_bio <- 0.25 * mean(Hsbio)
-Lt_bio <- NA #correlation time scale, in days
-correlate_full_bio <- F #if TRUE, apply RMSE to off_diagonals without decay
+if (include_bio){
+    rmse_bio <- 0.25 * mean(Hsbio)
+    Lt_bio <- NA #correlation time scale, in days
+    correlate_full_bio <- F #if TRUE, apply RMSE to off_diagonals without decay
+} else {
+    rmse_bio <- 0
+    Lt_bio <- NA #correlation time scale, in days
+    correlate_full_bio <- F #if TRUE, apply RMSE to off_diagonals without decay
+}
 R_bio_info <- c("R_bio", rmse_bio, Lt_bio, correlate_full_bio, F)
 R_arr <- rbind(R_arr, R_bio_info)
 
@@ -120,5 +126,8 @@ R_arr <- rbind(R_arr, R_other_info)
 
 
 # ~~~~~~~~~~~~~~~ additional errors for sites ~~~~~~~~~~~~~~~#
-extra_sites_err_rmse <- rep(0, nsites)
+extra_sites_err_rmse <- array(0, dim = c(1, nsites))
 colnames(extra_sites_err_rmse) <- sites
+
+# example:
+# extra_sites_err_rmse$site1 <- 5

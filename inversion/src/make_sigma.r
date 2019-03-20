@@ -84,7 +84,7 @@ uncert_bins <- array(0, dim = c(nlon, nlat, nbins))
 for (ii in 1:nbins) {
     ibin <- which(times_cut_all == unique(times_cut)[ii])  #get indices of timesteps corresponding to this bin
     uncert_arr <- array(nc_uncert[, , ibin], dim = c(nlon, nlat, length(ibin)))  #this is needed in case t_res is hourly
-    uncert_bins[, , ii] <- apply(uncert_arr, FUN = mean, MARGIN = c(1, 2))  #sum over bin's timesteps
+    uncert_bins[, , ii] <- apply(uncert_arr, FUN = mean, MARGIN = c(1, 2))  #aggregate over bin's timesteps
 }
 
 # ~~~~~~~~~~~~~~ mask grid to include only domain cells ~~~~~~~~~~~~~~ #
@@ -104,6 +104,7 @@ sigma_mat <- apply(uncert_bins, FUN = function(x) x[iDomain], MARGIN = 3)
 
 # convert to vector format
 sigma <- as.vector(sigma_mat)
+
 
 # ~~~~~~~~~~~~~~~~~~~~ Save prior uncertainty file ~~~~~~~~~~~~~~~~~~~~~~~#
 

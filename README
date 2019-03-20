@@ -8,9 +8,20 @@ This Bayesian inverse model code is based loosely on NOAA CarbonTracker-Lagrange
 software (see: https://www.esrl.noaa.gov/gmd/ccgg/carbontracker-lagrange/), but
 written in the R programming language.
 
+
 Code can be run as-is, provided that the proper input files are supplied. See
-config.r file in inversion/ directory for more information. Required input
-files should be placed in the include/ directory:
+config.r file in inversion/ directory for more information.
+
+After inputs are supplied, the program may be run from the inversion/ directory.
+If running in the R programming environment (R or Rstudio), run by typing 'source("run_all.r")'. (without single quotes)
+If running directly from the terminal, run by typing 'Rscript run_all.r'.
+
+The following packages must be installed to successfully run the model code:
+  "ncdf4"
+  "lubridate"
+  "geosphere"
+
+Required input files should be placed in the include/ directory:
   prior_emiss.nc
   prior_uncert.nc
   lonlat_domain.rds
