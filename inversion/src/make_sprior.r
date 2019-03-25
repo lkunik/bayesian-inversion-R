@@ -62,6 +62,11 @@ attributes(nc_time)$tzone <- "UTC"
 # get the number of lon/lat in the emission array
 nlon <- length(nc_lon)
 nlat <- length(nc_lat)
+ntime <- length(nc_time)
+
+#in case the time field has length = 1
+if(ntime == 1)
+    nc_emiss <- array(nc_emiss, dim = c(nlon, nlat, ntime))
 
 # ~~~~~~~~~~~~~~ obtain avg emissions for each timestep ~~~~~~~~~~~~~~ #
 
@@ -84,6 +89,7 @@ for (ii in 1:nbins) {
     ibin <- which(times_cut_all == unique(times_cut)[ii])  #get indices of timesteps corresponding to this bin
     emiss_arr <- array(nc_emiss[, , ibin], dim = c(nlon, nlat, length(ibin)))  #this is needed in case t_res is hourly
     emiss_bins[, , ii] <- apply(emiss_arr, FUN = mean, MARGIN = c(1, 2))  #sum over bin's timesteps
+
 }
 
 # ~~~~~~~~~~~~~~ mask grid to include only domain cells ~~~~~~~~~~~~~~ #

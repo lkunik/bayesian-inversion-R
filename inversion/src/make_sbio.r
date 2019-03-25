@@ -62,6 +62,11 @@ attributes(nc_time)$tzone <- "UTC"
 # get the number of lon/lat in the flux array
 nlon <- length(nc_lon)
 nlat <- length(nc_lat)
+ntime <- length(nc_time)
+
+#in case the time field has length = 1
+if(ntime == 1)
+    nc_flux <- array(nc_flux, dim = c(nlon, nlat, ntime))
 
 # ~~~~~~~~~~~~~~ obtain avg fluxes for each timestep ~~~~~~~~~~~~~~ #
 

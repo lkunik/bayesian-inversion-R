@@ -63,6 +63,11 @@ attributes(nc_time)$tzone <- "UTC"
 # get the number of lon/lat in the uncertainty array
 nlon <- length(nc_lon)
 nlat <- length(nc_lat)
+ntime <- length(nc_time)
+
+# in case the time field has length = 1
+if(ntime == 1)
+    nc_uncert <- array(nc_uncert, dim = c(nlon, nlat, ntime))
 
 # ~~~~~~~~~~~~~~ obtain avg uncertainties for each timestep ~~~~~~~~~~~~~~ #
 
