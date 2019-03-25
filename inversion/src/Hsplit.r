@@ -345,7 +345,7 @@ for (ii in 1:ntimes) {
                 if (length(idaysite) > 1) {
                   Hi_new <- rbind(Hi_new, apply(Hi_full[idaysite,], FUN = mean, MARGIN = 2))
                 } else {
-                  Hi_new <- rbind(Hi_new, Hi_full_[idaysite, ])
+                  Hi_new <- rbind(Hi_new, Hi_full[idaysite, ])
                 }
 
                 if (make_H_outer) {
