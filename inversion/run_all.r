@@ -22,6 +22,9 @@ if(!is.na(lonlat_outer_file) & !dir.exists("H_outer/"))
 if(!dir.exists("HQ/"))
     dir.create("HQ/")
 
+if(!dir.exists("out/"))
+    dir.create("out/")
+
 
 if (clear_H) {
     # H files
