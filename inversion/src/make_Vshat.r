@@ -137,8 +137,16 @@ prior_tot_unc <- sqrt(W %*% (Qsum/k2) %*% t(W))
 post_tot_unc <- sqrt(W %*% (Vshat_bar) %*% t(W))
 unc_red <- prior_tot_unc - post_tot_unc
 
-print(paste("prior TOT uncert =", round(prior_tot_unc, 2), flux_units)) #flux_units defined in config.r
-print(paste("post TOT uncert =", round(post_tot_unc, 2), flux_units))
+if(post_tot_unc < .01){
+	post_tot_unc_char <- formatC(post_tot_unc, format = "e", digits = 3)
+	prior_tot_unc_char <- formatC(prior_tot_unc, format = "e", digits = 3)
+} else{
+	post_tot_unc_char <- round(post_tot_unc, 3)
+	prior_tot_unc_char <- round(prior_tot_unc, 3)
+}
+
+print(paste("prior TOT uncert =", prior_tot_unc_char, flux_units)) #flux_units defined in config.r
+print(paste("post TOT uncert =", post_tot_unc_char, flux_units))
 
 perc_red <- (unc_red/prior_tot_unc) * 100
 print(paste("percent uncertainty reduction: (prior - posterior)/prior =", round(perc_red,
@@ -151,48 +159,52 @@ saveRDS(perc_red, filepath)
 
 # ~~~~ now determine prior/posterior uncertainty for subsetted-only times ~~~~ #
 
-print("calculating time-subsetted uncertainty reduction")
 times_hr <- hour(flux_times)  #this gives you the hour of timestamp at the CENTER of each timestep-bin
 isubset <- which(times_hr %in% subset_hours_utc)
 
-# make Qsum_subset for subsetted times - see equation above for how to calculate
-S_subset <- sigma_mat[isubset, ]  #in CT-Lagrange, this sub-matrix of sigma is denoted as S
-x_subset <- t(S_subset) %*% D[isubset, isubset]
-Qsum_subset <- (x_subset %*% S_subset) * E  #Multiplication with E is an element-by-element multiplication, not matrix multiplication.
+if(length(isubset) > 1){
 
-# get HQsum for the subset times
-HQsum_subset <- array(0, dim = c(nobs, ncells)) #create empty array to eventually hold sum
-# populate HQsum_subset
-for (ii in isubset) {
-    HQ_file <- paste0("HQ/HQ", formatC(ii, width = 3, flag = "0"), ".rds")
-    HQii <- readRDS(HQ_file)
-    HQsum_subset <- HQsum_subset + HQii
-}
+    print("calculating time-subsetted uncertainty reduction")
 
-k2_subset <- (length(isubset)^2) # num. times squared
+    # make Qsum_subset for subsetted times - see equation above for how to calculate
+    S_subset <- sigma_mat[isubset, ]  #in CT-Lagrange, this sub-matrix of sigma is denoted as S
+    x_subset <- t(S_subset) %*% D[isubset, isubset]
+    Qsum_subset <- (x_subset %*% S_subset) * E  #Multiplication with E is an element-by-element multiplication, not matrix multiplication.
 
-# make Vshat_bar representing subsetted times
-HQT_sum_HQHtRi_subset <- t(HQsum_subset) %*% HQHtRi
-a_subset <- HQT_sum_HQHtRi_subset %*% HQsum_subset
-Vshat_bar_subset <- (Qsum_subset - a_subset)/k2_subset
+    # get HQsum for the subset times
+    HQsum_subset <- array(0, dim = c(nobs, ncells)) #create empty array to eventually hold sum
+    # populate HQsum_subset
+    for (ii in isubset) {
+        HQ_file <- paste0("HQ/HQ", formatC(ii, width = 3, flag = "0"), ".rds")
+        HQii <- readRDS(HQ_file)
+        HQsum_subset <- HQsum_subset + HQii
+    }
 
-# multiply uncertainty covariance matrixes by the aggregation operators for
-# covariance-included total uncertainties
-prior_subset_unc <- sqrt(W %*% (Qsum_subset/k2_subset) %*% t(W))
-post_subset_unc <- sqrt(W %*% (Vshat_bar_subset) %*% t(W))
+    k2_subset <- (length(isubset)^2) # num. times squared
 
-#calculate the percent uncertainty reduction
-subset_perc_red <- ((prior_subset_unc - post_subset_unc)/prior_subset_unc) * 100
+    # make Vshat_bar representing subsetted times
+    HQT_sum_HQHtRi_subset <- t(HQsum_subset) %*% HQHtRi
+    a_subset <- HQT_sum_HQHtRi_subset %*% HQsum_subset
+    Vshat_bar_subset <- (Qsum_subset - a_subset)/k2_subset
 
-#define subsetted times
-subset_hour_begin <- subset_hours_utc[1]
-subset_hour_end <- tail(subset_hours_utc, 1)
+    # multiply uncertainty covariance matrixes by the aggregation operators for
+    # covariance-included total uncertainties
+    prior_subset_unc <- sqrt(W %*% (Qsum_subset/k2_subset) %*% t(W))
+    post_subset_unc <- sqrt(W %*% (Vshat_bar_subset) %*% t(W))
 
-if (subset_hour_begin != 0 | subset_hour_end != 23) {
-    print(paste(subset_hour_begin, "-", subset_hour_end, "UTC prior uncert = ", round(prior_subset_unc,
-        2), flux_units))
-    print(paste(subset_hour_begin, "-", subset_hour_end, "UTC post uncert =", round(post_subset_unc,
-        2), flux_units))
-    print(paste(subset_hour_begin, "-", subset_hour_end, "UTC percent uncertainty reduction =",
-        round(subset_perc_red, 2), "%"))
+    #calculate the percent uncertainty reduction
+    subset_perc_red <- ((prior_subset_unc - post_subset_unc)/prior_subset_unc) * 100
+
+    #define subsetted times
+    subset_hour_begin <- subset_hours_utc[1]
+    subset_hour_end <- tail(subset_hours_utc, 1)
+
+    if ((flux_t_res < 24*3600) & (subset_hour_begin != 0 | subset_hour_end != 23)) {
+        print(paste(subset_hour_begin, "-", subset_hour_end, "UTC prior uncert = ", round(prior_subset_unc,
+            2), flux_units))
+        print(paste(subset_hour_begin, "-", subset_hour_end, "UTC post uncert =", round(post_subset_unc,
+            2), flux_units))
+        print(paste(subset_hour_begin, "-", subset_hour_end, "UTC percent uncertainty reduction =",
+            round(subset_perc_red, 2), "%"))
+    }
 }

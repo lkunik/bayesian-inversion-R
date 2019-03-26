@@ -111,22 +111,39 @@ shat_mat <- matrix(s_hat, nrow = ntimes, byrow = T)
 shat_avgs <- apply(shat_mat, FUN = function(x) W %*% x, MARGIN = 1) #weight by cell areas
 shat_avg <- mean(shat_avgs)
 
-print(paste("Overall domain-averaged prior emissions:", round(sprior_avg, 3), flux_units))
-print(paste("Overall domain-averaged posterior emissions:", round(shat_avg, 3), flux_units))
+if(shat_avg < .01){
+	shat_avg_char <- formatC(shat_avg, format = "e", digits = 3)
+	sprior_avg_char <- formatC(sprior_avg, format = "e", digits = 3)
+} else{
+	shat_avg_char <- round(shat_avg, 3)
+	sprior_avg_char <- round(sprior_avg, 3)
+}
+
+
+print(paste("Overall domain-averaged prior emissions:", sprior_avg_char, flux_units))
+print(paste("Overall domain-averaged posterior emissions:", shat_avg_char, flux_units))
 
 
 #if time is subsetted, grab the average for the constrained time period as well
 sprior_subset_avg <- mean(sprior_avgs[isubset])
 shat_subset_avg <- mean(shat_avgs[isubset])
 
+if(!is.na(shat_subset_avg) &  shat_subset_avg < .01){
+	shat_avg_char <- formatC(shat_subset_avg, format = "e", digits = 3)
+	sprior_avg_char <- formatC(sprior_subset_avg, format = "e", digits = 3)
+} else{
+	shat_avg_char <- round(shat_subset_avg, 3)
+	sprior_avg_char <- round(sprior_subset_avg, 3)
+}
+
 subset_hour_begin <- subset_hours_utc[1]
 subset_hour_end <- tail(subset_hours_utc, 1)
-if (subset_hour_begin != 0 | subset_hour_end != 23) {
+if ((flux_t_res < 24*3600) & (subset_hour_begin != 0 | subset_hour_end != 23)) {
     print("-----------------------------")
 
     print(paste(subset_hour_begin, "-", subset_hour_end, "UTC average of prior emissions:",
-        round(sprior_subset_avg, 3), flux_units))
+        sprior_avg_char, flux_units))
 
     print(paste(subset_hour_begin, "-", subset_hour_end, "UTC average of posterior emissions:",
-        round(shat_subset_avg, 3), flux_units))
+        shat_avg_char, flux_units))
 }

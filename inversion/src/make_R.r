@@ -95,11 +95,12 @@ aggregate_R <- function(R, site_vec, datetimes, site_vec_aggr, dates_aggr){
     nobs <- length(site_vec) #get number of total obs, pre-aggregation
     nobs_aggr <- length(site_vec_aggr) #number of total obs after aggregation
     R_aggr_diag <- rep(0, nobs_aggr) #this will hold the new aggregated R
-    ndays <- length(unique(dates_aggr))
 
     # vector of unique dates that appear in the receptor list
     posix_dates <- unique(ISOdate(year(datetimes), month(datetimes),
                           day(datetimes), tz = "UTC"))
+
+    ndays <- length(posix_dates)
 
     # loop through the sites
     for(site in unique(site_vec_aggr)){
@@ -117,6 +118,7 @@ aggregate_R <- function(R, site_vec, datetimes, site_vec_aggr, dates_aggr){
         isitedays_aggr <- lapply(posix_dates, FUN = function(x) which(year(dates_aggr) %in% year(x) &
                                             month(dates_aggr) %in% month(x) &
                                             day(dates_aggr) %in% day(x) & siteTF_aggr))
+
 
         # loop through all days and aggregate
         for (ii in 1:ndays) {
