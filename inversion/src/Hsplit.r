@@ -336,8 +336,8 @@ for (ii in 1:ntimes) {
                 iday <- which(times_cut_day == time_bins_daily[jj])  #find which recep times correspond to this day
                 idaysite <- isite[which(isite %in% iday)]  #get the overlap of these two - THIS site on THIS day
 
-                # if this there are no obs for this site on this day, skip
-                if (length(idaysite) == 0)
+                # if num obs for this site on this day is below minimum defined in config.r, skip
+                if (length(idaysite) < min_agg_obs)
                   next
 
                 # now take the average footprint for this day and set this as the row for this

@@ -160,9 +160,9 @@ if (aggregate_obs) {
             iday <- which(times_cut_day == time_bins_daily[ii])  #find which recep times correspond to this day
             idaysite <- isite[which(isite %in% iday)]  #get the overlap of these two - THIS site on THIS day
 
-            # if this there are no obs for this site on this day, skip
-            if (length(idaysite) == 0)
-                next
+            # if num obs for this site on this day is below minimum defined in config.r, skip
+            if (length(idaysite) < min_agg_obs)
+              next
 
             # save the site/day in order so we can later reference the site/day ordering for
             # the R matrix and obs vectors get the sitename for this site

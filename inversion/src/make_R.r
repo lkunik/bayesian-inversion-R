@@ -124,9 +124,9 @@ aggregate_R <- function(R, site_vec, datetimes, site_vec_aggr, dates_aggr){
                 idaysite <- isitedays[[ii]] #indices of this site's obs on this day
                 iaggr <- isitedays_aggr[[ii]]
 
-                # if this there are no obs for this site on this day, skip
-                if (length(idaysite) == 0)
-                    next
+                # if num obs for this site on this day is below minimum defined in config.r, skip
+                if (length(idaysite) < min_agg_obs)
+                  next
 
                 # establish an aggregation operator for this site's obs on this day
                 # in general (if no missing data/footprints) it's 1/length(subset_hours_utc)

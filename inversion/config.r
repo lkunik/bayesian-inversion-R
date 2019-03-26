@@ -121,6 +121,9 @@ subset_hours_utc <- 18:23
 # hours?
 aggregate_obs <- T
 
+# if so, what is the required minimum number of observations within the subsetted time per day?
+min_agg_obs <- 2
+
 # get the number of days
 ndays <- length(seq(from = ISOdatetime(obs_year_start, obs_month_start, obs_day_start,
     obs_hour_start, obs_min_start, 0, tz = "UTC"), to = ISOdatetime(obs_year_end,

@@ -100,9 +100,9 @@ if (aggregate_obs) {
             isite <- isites[[jj]]  #find which receps correspond to this site
             idaysite <- isite[which(isite %in% iday)]  #get the overlap of these two - THIS site on THIS day
 
-            # if this there are no obs for this site on this day, skip
-            if (length(idaysite) == 0)
-                next
+            # if num obs for this site on this day is below minimum defined in config.r, skip
+            if (length(idaysite) < min_agg_obs)
+              next
 
             inew <- inew + 1  #this is a counter, the same way that Hsplit does it
 
