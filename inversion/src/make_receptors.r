@@ -46,7 +46,8 @@ obs <- readRDS(obs_file)
 
 # load in background file
 bkgd <- readRDS(bg_file)
-bkgd_times <- as.numeric(bkgd[, 1])
+ibg_nNA <- which(!is.na(as.numeric(bkgd[,2])))
+bkgd_times <- as.numeric(bkgd[ibg_nNA, 1])
 class(bkgd_times) <- c("POSIXt", "POSIXct")
 attributes(bkgd_times)$tzone <- "UTC"
 
