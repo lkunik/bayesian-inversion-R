@@ -62,7 +62,6 @@ sprior_mat <- matrix(sprior, nrow = ntimes, byrow = T)
 nflux <- length(s_hat)
 
 # get grid info
-lonlat_outer <- readRDS(lonlat_outer_file)
 lonlat_domain <- readRDS(lonlat_domain_file)
 ncells <- nrow(lonlat_domain)
 

@@ -9,7 +9,7 @@
 ##  make_tmp_cov.r
 ##  make_sigma.r
 ##  make_R.r
-##  make_HQHt.r
+##  make_HQ.r
 ##
 ## output files:
 ##  Vshat_bar.rds - file containing a (#cells x #cells) matrix of posterior error
