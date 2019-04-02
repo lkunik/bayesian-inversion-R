@@ -5,6 +5,22 @@ aggregate_receptors <- function(receptor_files,
                                 receptor_times){
 
 
+    # receptor start/end parameters
+    y1 <- obs_year_start
+    y2 <- obs_year_end
+
+    m1 <- obs_month_start
+    m2 <- obs_month_end
+
+    d1 <- obs_day_start
+    d2 <- obs_day_end
+
+    h1 <- obs_hour_start
+    h2 <- obs_hour_end
+
+    mn1 <- obs_min_start
+    mn2 <- obs_min_end
+
     # get a list of each site's indices within the receptor list we've created
     isites <- lapply(sites, FUN = function(x) grep(x, receptor_files))
 

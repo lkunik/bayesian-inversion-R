@@ -53,7 +53,7 @@ post_to_ncdf <- function(lonlat_domain,
     ncells <- nrow(lonlat_domain)
 
     sigma_mat <- matrix(sigma, nrow = ntimes, byrow = T) # ntimes defined in config.r
-    shat_mat <- matrix(shat_vec, nrow = ntimes, byrow = T)
+    shat_mat <- matrix(posterior, nrow = ntimes, byrow = T)
 
     # ~~~~~~~~~~~~~~~~~~~~~~ set up grid formatting ~~~~~~~~~~~~~~~~~~~~~~~~#
 

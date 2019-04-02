@@ -13,17 +13,17 @@
 library(lubridate)
 
 # run dependent scripts
-source("config_R_uncert.r")
 source("src/add_off_diags_R.r")
-source("aggregate_R.r")
+source("src/aggregate_R.r")
 
 make_R <- function(receptor_files,
                    receptor_times,
                    lonlat_domain,
                    receptors_aggr = NA) {
 
+    source("config_R_uncert.r")
 
-    nobs <- nrow(receptors)
+    nobs <- length(receptor_files)
 
     # convert receptor times from seconds-since-epoch to POSIX
     class(receptor_times) <- c("POSIXt", "POSIXct")
@@ -115,7 +115,7 @@ make_R <- function(receptor_files,
 
         recep_sites_aggr <- receptors_aggr[,1]
         recep_times_aggr <- receptors_aggr[,2]
-        
+
         class(recep_times_aggr) <- c("POSIXt", "POSIXct")
         attributes(recep_times_aggr)$tzone <- "UTC"
 

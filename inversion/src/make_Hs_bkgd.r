@@ -15,7 +15,7 @@
 
 # run dependent scripts
 source("config.r")
-source("read_sparse_h.r")
+source("src/read_sparse_h.r")
 
 
 make_Hs_bkgd <- function(lonlat_domain,

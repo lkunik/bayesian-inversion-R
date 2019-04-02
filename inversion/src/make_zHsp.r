@@ -11,7 +11,7 @@
 
 # run dependent scripts
 source("config.r")
-source("read_sparse_h.r")
+source("src/read_sparse_h.r")
 
 
 make_zHsp <- function(z,
@@ -27,6 +27,7 @@ make_zHsp <- function(z,
     # get Hsprior by convolving footprints
     Hsprior <- rep(0, nobs)
 
+    path <- "H/"
     # convolve each H file and add to running total of Hsbio
     for (ii in 1:ntimes) {
 

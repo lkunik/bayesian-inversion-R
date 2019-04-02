@@ -91,7 +91,7 @@ make_receptors <- function(obs_mat,
         # IMPORTANT! We don't always have data for the desired subsetted times in our
         # inversion, so we need to check which of these subsetted times we DO have data for
         isite <- which(obs_mat[, 1] == site)  #indices of obs that match this site
-        obs_mat_times <- as.numeric(obs_mat[isite, 2])  #get the master list of POSIX times for this site's available data
+        obs_times <- as.numeric(obs_mat[isite, 2])  #get the master list of POSIX times for this site's available data
 
         #convert obs_times from seconds-since-epoch to POSIX
         class(obs_times) <- c("POSIXt", "POSIXct")
@@ -122,10 +122,16 @@ make_receptors <- function(obs_mat,
     itime_sort <- order(times_unsorted)
     recep_list <- recep_list_unsorted[itime_sort]
 
-    # combine the times and filepaths to get the var we want to save
-    recep_list_w_dates <- cbind(time_list, recep_list)
-    colnames(recep_list_w_dates) <- c("seconds_since_1970_01_01", "file_path")
+    ret_list <- list()
+    ret_list[["time"]] <- time_list
+    ret_list[["file_path"]] <- recep_list
 
-    recep_list_w_dates
+    ret_list
+
+    # combine the times and filepaths to get the var we want to save
+    #recep_list_w_dates <- cbind(time_list, recep_list)
+    #colnames(recep_list_w_dates) <- c("seconds_since_1970_01_01", "file_path")
+
+    #recep_list_w_dates
 
 }

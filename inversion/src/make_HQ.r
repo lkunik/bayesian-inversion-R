@@ -15,7 +15,7 @@
 
 # run dependent scripts
 source("config.r")
-source("read_sparse_h.r")
+source("src/read_sparse_h.r")
 
 
 make_HQ <- function(sigma,
@@ -39,6 +39,7 @@ make_HQ <- function(sigma,
     # format sigma so it's easily accessible by timestep
     sigma_mat <- matrix(sigma, nrow = ntimes, byrow = T)
 
+    path <- "H/"
 
     # Loop through timesteps - ntimes defined in config.r
     for (ii in 1:ntimes) {

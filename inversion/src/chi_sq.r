@@ -37,7 +37,7 @@ calc_chi_sq <- function(prior,
 
     #place state vectors into timestep-accessible matrix format
     sigma_mat <- matrix(sigma, nrow = ntimes, byrow = T)
-    s_hat_mat <- matrix(post, nrow = ntimes, byrow = T)
+    s_hat_mat <- matrix(posterior, nrow = ntimes, byrow = T)
     sprior_mat <- matrix(prior, nrow = ntimes, byrow = T)
 
     #get number of grid cells
@@ -86,7 +86,7 @@ calc_chi_sq <- function(prior,
 
 
     # ~~~~~~~~~~~~~~~~~~~ calculate Chi^2 flux ~~~~~~~~~~~~~~~~~~~#
-    shatsp <- post - prior
+    shatsp <- posterior - prior
     shatsp_mat <- matrix(shatsp, nrow = ntimes, byrow = T)
     # the following method is similar to the sparse matrix method in make_HQ.r but
     # using state vector residuals instead of H, and improvising a Q^-1 from its

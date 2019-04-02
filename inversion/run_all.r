@@ -92,14 +92,15 @@ print("~~~~~~~~~~~~~~~~~~~~~~~~")
 print("generating receptor list")
 print("~~~~~~~~~~~~~~~~~~~~~~~~")
 
-receptor_mat <- make_receptors(obs_mat, bkgd_mat)
-n_obs <- nrow(receptor_mat)
-receptor_times <- receptor_mat[,1] #time stamps are in seconds since 1970-01-01 00:00:00Z
-receptor_files <- receptor_mat[,2]
-saveRDS(receptor_mat, paste0(out_path, "receptors.rds"))
+receptor_list <- make_receptors(obs_mat, bkgd_mat)
+receptor_times <- receptor_list[["time"]] #time stamps are in seconds since 1970-01-01 00:00:00Z
+receptor_files <- receptor_list[["file_path"]]
+n_obs <- length(receptor_files)
+filesave <- cbind(receptor_times, receptor_files)
+colnames(filesave) <- c("seconds_since_1970_01_01Z", "file_path")
+saveRDS(filesave, paste0(out_path, "receptors.rds"))
 
-
-if(aggregate_receptors){
+if(aggregate_obs){
   receptors_aggr <- aggregate_receptors(receptor_files, receptor_times)
   n_obs <- nrow(receptors_aggr)
   saveRDS(receptors_aggr, paste0(out_path, "receptors_aggr.rds"))
@@ -175,7 +176,7 @@ saveRDS(E, paste0(out_path, "sp_cov.rds"))
 print("~~~~~~~~~~~~~~~~~~~~~~~~")
 print("generating temporal covariance matrix, D")
 print("~~~~~~~~~~~~~~~~~~~~~~~~")
-D <- make_tmp_cov(lonlat_domain)
+D <- make_tmp_cov()
 saveRDS(D, paste0(out_path, "tmp_cov.rds"))
 
 # 10. make HQ

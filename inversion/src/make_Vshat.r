@@ -192,4 +192,7 @@ make_Vshat <- function(lonlat_domain,
         }
     }
 
+
+    #return ret_list
+    ret_list
 } #end function

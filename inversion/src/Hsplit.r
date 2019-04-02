@@ -40,12 +40,13 @@ Hsplit <- function(receptor_files,
     make_H_outer <- !is.na(lonlat_outer_file)
 
     # convert receptor times to POSIX
-    class(recep_times) <- c("POSIXt", "POSIXct")
-    attributes(recep_times)$tzone <- "UTC"
+    class(receptor_times) <- c("POSIXt", "POSIXct")
+    attributes(receptor_times)$tzone <- "UTC"
 
     # indices of sites in the receptor list
     isites <- lapply(sites, FUN = function(x) grep(x, receptor_files))
 
+    nobs <- length(receptor_files)
     ncells <- nrow(lonlat_domain)
 
     # load in sample foot file to get the footprint domain details
@@ -141,10 +142,10 @@ Hsplit <- function(receptor_files,
 
     for (ii in 1:nobs) {
 
-        print(paste("loading footprint file:", receptors[ii]))
+        print(paste("loading footprint file:", receptor_files[ii]))
 
         # load in footprint file and obtain the vars we need
-        nc_f <- nc_open(receptors[ii])
+        nc_f <- nc_open(receptor_files[ii])
         nc_lat <- round(ncvar_get(nc_f, "lat"), round_digs)
         nc_lon <- round(ncvar_get(nc_f, "lon"), round_digs)
         nc_time <- ncvar_get(nc_f, "time")
@@ -276,7 +277,7 @@ Hsplit <- function(receptor_files,
 
 
 
-    times_cut_day <- as.POSIXct(cut(recep_times, breaks = time_bins_daily), tz = "UTC")
+    times_cut_day <- as.POSIXct(cut(receptor_times, breaks = time_bins_daily), tz = "UTC")
 
     # run through each timestep, load H txt file, combine times into daily
     # footprints, and re-save as RDS

@@ -25,7 +25,7 @@ make_bg <- function(receptor_files,
     nobs <- length(receptor_files) #total number of observations
 
     # grab indices of all sites' footprints/obs in the receptor list
-    isites <- lapply(sites, FUN = function(x) grep(x, recep_names))
+    isites <- lapply(sites, FUN = function(x) grep(x, receptor_files))
 
     class(bkgd_times) <- c("POSIXt", "POSIXct")
     attributes(bkgd_times)$tzone <- "UTC"
@@ -43,7 +43,7 @@ make_bg <- function(receptor_files,
             next
 
         # now filter base bkgd for times corresponding to this site's receptors
-        iz <- which(bkgd_times %in% recep_times[isite])
+        iz <- which(bkgd_times %in% receptor_times[isite])
         bg_z <- bkgd_vals[iz]
 
         # get bg for this site and add to the vector
@@ -79,7 +79,7 @@ make_bg <- function(receptor_files,
             to = ISOdatetime(y2, m2, d2, h2, mn2, 0, tz = "UTC") + 3600, by = 24 * 3600)
 
         # cut the original receptor times into 1-day bins
-        times_cut_day <- as.POSIXct(cut(recep_times, breaks = time_bins_daily), tz = "UTC")
+        times_cut_day <- as.POSIXct(cut(receptor_times, breaks = time_bins_daily), tz = "UTC")
 
         # this will hold our new, aggregated bg values
         bg_aggr <- rep(0, nobs_new)
