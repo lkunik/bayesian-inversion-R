@@ -52,123 +52,208 @@ invisible(sapply(out_files[iFiles], FUN = function(x) system(paste("rm", x))))
 
 # ~~~~~~~~~~~~~~~~~ run scripts in order ~~~~~~~~~~~~~~~~~#
 
+source("src/make_receptors.r")
+source("src/aggregate_receptors.r")
+source("src/make_sprior.r")
+source("src/make_outer.r")
+source("src/make_sigma.r")
+source("src/make_sbio.r")
+source("src/Hsplit.r")
+source("src/make_Hs_bkgd.r")
+source("src/make_sp_cov.r")
+source("src/make_tmp_cov.r")
+source("src/make_HQ.r")
+source("src/make_bg.r")
+source("src/make_z.r")
+source("src/make_R.r")
+source("src/make_zHsp.r")
+source("src/inversion.r")
+source("src/make_Vshat.r")
+source("src/post_to_ncdf.r")
+source("src/chi_sq.r")
+
+bio_flux <- NA
+outer_emiss <- NA
+lonlat_outer <- NA
+Hs_outer <- NA
+Hs_bio <- NA
+receptors_aggr <- NA
+
+#load any necessary inputs before running code
+obs_mat <- readRDS(obs_file)
+bkgd_mat <- readRDS(bg_file)
+lonlat_domain <- readRDS(lonlat_domain_file)
+if(!is.na(lonlat_outer_file))
+    lonlat_outer <- readRDS(lonlat_outer_file)
+
+
 # 1. make receptor list (list of all footprint files used for observations)
 print("~~~~~~~~~~~~~~~~~~~~~~~~")
-print("running make_receptors.r")
+print("generating receptor list")
 print("~~~~~~~~~~~~~~~~~~~~~~~~")
-source("src/make_receptors.r")
+
+receptor_mat <- make_receptors(obs_mat, bkgd_mat)
+n_obs <- nrow(receptor_mat)
+receptor_times <- receptor_mat[,1] #time stamps are in seconds since 1970-01-01 00:00:00Z
+receptor_files <- receptor_mat[,2]
+saveRDS(receptor_mat, paste0(out_path, "receptors.rds"))
+
+
+if(aggregate_receptors){
+  receptors_aggr <- aggregate_receptors(receptor_files, receptor_times)
+  n_obs <- nrow(receptors_aggr)
+  saveRDS(receptors_aggr, paste0(out_path, "receptors_aggr.rds"))
+}
 
 # 2. make sprior (prior emissions vector)
 print("~~~~~~~~~~~~~~~~~~~~~~~~")
-print("running make_sprior.r")
+print("loading prior emissions")
 print("~~~~~~~~~~~~~~~~~~~~~~~~")
-source("src/make_sprior.r")
+sprior <- make_sprior(prior_file, lonlat_domain)
+saveRDS(sprior, paste0(out_path, "sprior.rds"))
+
+
+# 3. make sigma (prior uncertainty vector)
+print("~~~~~~~~~~~~~~~~~~~~~~~~")
+print("loading prior uncertainty")
+print("~~~~~~~~~~~~~~~~~~~~~~~~")
+sigma <- make_sigma(sigma_file, lonlat_domain)
+saveRDS(sigma, paste0(out_path, "sigma.rds"))
+
 
 if (include_outer) {
-    # 3. make outer (outer-domain emissions vector)
+    # 4. make outer (outer-domain emissions vector)
     print("~~~~~~~~~~~~~~~~~~~~~~~~")
-    print("running make_outer.r")
+    print("loading outer-domain emissions")
     print("~~~~~~~~~~~~~~~~~~~~~~~~")
-    source("src/make_outer.r")
-}
+    outer_emiss <- make_outer(outer_file, lonlat_outer)
+    saveRDS(outer_emiss, paste0(out_path, "outer.rds"))
 
-# 4. make sigma (prior uncertainty vector)
-print("~~~~~~~~~~~~~~~~~~~~~~~~")
-print("running make_sigma.r")
-print("~~~~~~~~~~~~~~~~~~~~~~~~")
-source("src/make_sigma.r")
+}
 
 if (include_bio) {
     # 5. make sbio - biogenic flux vector
     print("~~~~~~~~~~~~~~~~~~~~~~~~")
-    print("running make_sbio.r")
+    print("loading bio fluxes")
     print("~~~~~~~~~~~~~~~~~~~~~~~~")
-    source("src/make_sbio.r")
+    bio_flux <- make_sbio(bio_file, lonlat_outer)
+    saveRDS(bio_flux, paste0(out_path, "sbio.rds"))
+
 }
 
 if (clear_H) {
     # 6. make H (footprint matrices)
     print("~~~~~~~~~~~~~~~~~~~~~~~~")
-    print("running Hsplit.r")
+    print("running Hsplit")
     print("~~~~~~~~~~~~~~~~~~~~~~~~")
-    source("src/Hsplit.r")
+    Hsplit(receptor_files, receptor_times, lonlat_domain, lonlat_outer)
 }
 
 if (include_outer | include_bio) {
     # 7. derive biogenic and outer-domain additions to bkgd
     print("~~~~~~~~~~~~~~~~~~~~~~~~")
-    print("running make_Hs_bkgd.r")
+    print("generating background enhancements")
     print("~~~~~~~~~~~~~~~~~~~~~~~~")
-    source("src/make_Hs_bkgd.r")
+    Hs_bkgd <- make_Hs_bkgd(lonlat_domain, lonlat_outer, bio_flux, outer_emiss, n_obs)
+
+    if(include_outer)
+        saveRDS(Hs_bkgd[["Hs_outer"]], paste0(out_path, "Hs_outer.rds"))
+
+    if(include_bio)
+        saveRDS(Hs_bkgd[["Hs_bio"]], paste0(out_path, "Hs_bio.rds"))
 }
 
 # 8. make spatial covariance matrix
 print("~~~~~~~~~~~~~~~~~~~~~~~~")
-print("running make_sp_cov.r")
+print("generating spatial covariance matrix, E")
 print("~~~~~~~~~~~~~~~~~~~~~~~~")
-source("src/make_sp_cov.r")
+E <- make_sp_cov(lonlat_domain)
+saveRDS(E, paste0(out_path, "sp_cov.rds"))
+
 
 # 9. make temporal covariance matrix
 print("~~~~~~~~~~~~~~~~~~~~~~~~")
-print("running make_tmp_cov.r")
+print("generating temporal covariance matrix, D")
 print("~~~~~~~~~~~~~~~~~~~~~~~~")
-source("src/make_tmp_cov.r")
+D <- make_tmp_cov(lonlat_domain)
+saveRDS(D, paste0(out_path, "tmp_cov.rds"))
 
 # 10. make HQ
 print("~~~~~~~~~~~~~~~~~~~~~~~~")
-print("running make_HQ.r")
+print("generating HQ files")
 print("~~~~~~~~~~~~~~~~~~~~~~~~")
-source("src/make_HQ.r")
+HQHt <- make_HQ(sigma, D, E, lonlat_domain, n_obs)
+saveRDS(HQHt, paste0(out_path, "HQHt.rds"))
 
 # 11. make bkgd
 print("~~~~~~~~~~~~~~~~~~~~~~~~")
-print("running make_bg.r")
+print("generating background")
 print("~~~~~~~~~~~~~~~~~~~~~~~~")
-source("src/make_bg.r")
+bkgd <- make_bg(receptor_files, receptor_times, bkgd_mat[,2], bkgd_mat[,1],
+                Hs_outer, Hs_bio, receptors_aggr)
+saveRDS(bkgd, paste0(out_path, "bg.rds"))
+
 
 # 12. make z (anthropogenic enhancement values)
 print("~~~~~~~~~~~~~~~~~~~~~~~~")
-print("running make_z.r")
+print("generating enhancements")
 print("~~~~~~~~~~~~~~~~~~~~~~~~")
-source("src/make_z.r")
+z <- make_z(receptor_files, receptor_times, obs_mat, bkgd, receptors_aggr)
+saveRDS(z, paste0(out_path, "z.rds"))
 
 # 13. make R (model data mismatch)
 print("~~~~~~~~~~~~~~~~~~~~~~~~")
-print("running make_R.r")
+print("creating model-data mismatch matrix, R")
 print("~~~~~~~~~~~~~~~~~~~~~~~~")
-source("src/make_R.r")
+R <- make_R(receptor_files, receptor_times, lonlat_domain, receptors_aggr)
+saveRDS(R, paste0(out_path, "R.rds"))
 
 # 14. make z - Hsp
 print("~~~~~~~~~~~~~~~~~~~~~~~~")
-print("running make_zHsp.r")
+print("getting model-obs enhancement differences")
 print("~~~~~~~~~~~~~~~~~~~~~~~~")
-source("src/make_zHsp.r")
+zHsp_list <- make_zHsp(z, sprior)
+zHsp <- zHsp_list[["zHsp"]]
+Hsprior <- zHsp_list[["Hsprior"]]
+saveRDS(zHsp, paste0(out_path, "zHsp.rds"))
+saveRDS(Hsprior, paste0(out_path, "Hsprior.rds"))
+
 
 # 15. make s_hat (optimized emissions vector)
 print("~~~~~~~~~~~~~~~~~~~~~~~~")
-print("running inversion.r")
+print("calculating additive corrections")
 print("~~~~~~~~~~~~~~~~~~~~~~~~")
-source("src/inversion.r")
+s_hat <- make_post(sprior, R, zHsp, HQHt)
+saveRDS(s_hat, paste0(out_path, "s_hat.rds"))
 
 # 16. make_Vshat (posterior uncertainty - technically makes Vshat-bar, which is
 # the grid-scale aggregated uncertainty)
 print("~~~~~~~~~~~~~~~~~~~~~~~~")
-print("running make_Vshat.r")
+print("calculating posterior uncertainty")
 print("~~~~~~~~~~~~~~~~~~~~~~~~")
-source("src/make_Vshat.r")
+Vshat_list <- make_Vshat(lonlat_domain, sigma, D, E, R, HQHt)
+Qsum <- Vshat_list[["Qsum"]]
+Vshat <- Vshat_list[["Vshat_bar"]]
+percent_uncert_reduction <- Vshat_list[["perc_unc_red"]]
+saveRDS(Qsum, paste0(out_path, "Qsum.rds"))
+saveRDS(Vshat, paste0(out_path, "Vshat_bar.rds"))
+saveRDS(percent_uncert_reduction, paste0(out_path, "perc_unc_red.rds"))
+
 
 # 17. convert posterior emissions/uncertainty into netcdf format for interpreting results
 print("~~~~~~~~~~~~~~~~~~~~~~~~")
 print("saving results to netcdf")
 print("~~~~~~~~~~~~~~~~~~~~~~~~")
-source("src/post_proc.r")
+post_to_ncdf(lonlat_domain, s_hat, sigma, D, E, R, HQHt)
+
 
 if (compute_chi_sq) {
     # 18. calculate Chi-squared
     print("~~~~~~~~~~~~~~~~~~~~~~~~")
-    print("running chi_sq.r")
+    print("calculating reduced Chi squared")
     print("~~~~~~~~~~~~~~~~~~~~~~~~")
-    source("src/chi_sq.r")
+    reduced_chi_sq <- calc_chi_sq(sprior, s_hat, sigma, D, E, R, z)
+    saveRDS(reduced_chi_sq, paste0(out_path, "chi_sq.rds"))
 }
 
 
