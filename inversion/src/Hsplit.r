@@ -306,7 +306,7 @@ for (ii in 1:ntimes) {
         idaysite <- isite[which(isite %in% iday)]  #get the overlap of these two - THIS site on THIS day
 
         # if this there are no obs for this site on this day, skip
-        if (length(idaysite) == 0)
+        if (length(idaysite) < min_agg_obs)
           next
 
         # now take the average footprint for this day and set this as the row for this

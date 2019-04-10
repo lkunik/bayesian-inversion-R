@@ -62,6 +62,7 @@ HQHt <- readRDS(HQHt_file)
 # load in HQ files
 nobs <- nrow(R)
 
+lonlat_domain <- readRDS(lonlat_domain_file)
 
 
 
