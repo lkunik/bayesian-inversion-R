@@ -91,8 +91,25 @@ if (make_H_outer) {
 
 # ~~~~~~~~~~~~~~~~~~~~~~~ create time bins ~~~~~~~~~~~~~~~~~~~~~~~#
 
+# specify start/end from config.r variables
+y1 <- flux_year_start
+y2 <- flux_year_end
+
+m1 <- flux_month_start
+m2 <- flux_month_end
+
+d1 <- flux_day_start
+d2 <- flux_day_end
+
+h1 <- flux_hour_start
+h2 <- flux_hour_end
+
+mn1 <- flux_min_start
+mn2 <- flux_min_end
+
 # list all desired obs times
-time_bins <- seq(from = flux_start_POSIX, to = flux_end_POSIX, by = flux_t_res) # flux_t_res defined in config.r
+time_bins <- seq(from = ISOdatetime(y1, m1, d1, h1, mn1, 0, tz = "UTC"),
+                 to = ISOdatetime(y2,m2, d2, h2, mn2, 0, tz = "UTC"), by = flux_t_res) # flux_t_res defined in config.r
 
 
 # create H files for each timestep - we will use TXT files and later append to
@@ -107,7 +124,7 @@ for (ii in 1:ntimes) {
   colnames(Hii) <- c("obs_index", "cell_index", "foot_value")
 
   # make empty rds files for each timestep
-  tmpfile <- paste0("H/H", formatC(ii, width = filename_width, flag = "0"), ".txt")
+  tmpfile <- paste0("H/H", formatC(ii, width = 3, flag = "0"), ".txt")
   fileWrite <- file(tmpfile, "wt")
   write.table(Hii, fileWrite, row.names = F)
   close(fileWrite)
@@ -115,7 +132,7 @@ for (ii in 1:ntimes) {
   if (make_H_outer) {
 
     # do the same for outer files
-    tmpfile_outer <- paste0("H_outer/H", formatC(ii, width = filename_width, flag = "0"), ".txt")
+    tmpfile_outer <- paste0("H_outer/H", formatC(ii, width = 3, flag = "0"), ".txt")
     fileWrite <- file(tmpfile_outer, "wt")
     write.table(Hii, fileWrite, row.names = F)
     close(fileWrite)
@@ -128,17 +145,56 @@ for (ii in 1:ntimes) {
 # ~~~~~~~~~~~~~~~~~~~~~~~ assemble H matrix ~~~~~~~~~~~~~~~~~~~~~~~#
 for (ii in 1:nobs) {
 
-  print(paste("loading footprint file:", receptors[ii]))
+    print(paste("loading footprint file:", receptors[ii]))
 
-  nc_foot <- brick(receptors[ii])
-  nc_time <- as.POSIXct(getZ(nc_foot), tz = 'UTC', origin = '1970-01-01')
+    # load in footprint file and obtain the vars we need
+    nc_f <- nc_open(receptors[ii])
+    nc_lat <- round(ncvar_get(nc_f, "lat"), round_digs)
+    nc_lon <- round(ncvar_get(nc_f, "lon"), round_digs)
+    nc_time <- ncvar_get(nc_f, "time")
+    class(nc_time) <- c("POSIXt", "POSIXct")
+    attributes(nc_time)$tzone <- "UTC"
+    nc_foot <- ncvar_get(nc_f, "foot")  #naming based on STILT-R convention
+    nc_close(nc_f)  #close the netcdf file
 
-  run <- rle(as.numeric(cut(nc_time, breaks = time_bins)))
-  index <- rep.int(1:length(run$lengths), run$lengths)
-  nc_foot_sum <- stackApply(nc_foot, index, sum)
+    nlat <- length(nc_lat)
+    nlon <- length(nc_lon)
 
-  nc_foot_sum <- as.array(nc_foot_sum)
-  nbins <- dim(nc_foot_sum)[3]
+    # note: nc_foot has dims lat x lon x time
+    if(foot_dim_lonxlat){
+      default_xy_dims <- c(nlon, nlat)
+    } else {
+      default_xy_dims <- c(nlat, nlon)
+    }
+
+    # break up footprint times into corresponding time bins to appropriately assign columns
+    times_cut <- as.POSIXct(cut(nc_time, breaks = time_bins), tz = "UTC")
+    if (all(is.na(times_cut)))
+        next
+
+    # number of time bins this footprint's time dimension falls into
+    nbins <- length(unique(times_cut))
+
+    # nc_foot should have >1 timestep for all files, but this is a safety check
+    if (length(nc_time) > 1) {
+
+        # for each bin, sum the foot grids of all timesteps that fall into that bin
+        nc_foot_sum <- array(0, dim = c(default_xy_dims, nbins))
+        for (jj in 1:nbins) {
+            ibin <- which(times_cut == unique(times_cut)[jj])  #get indices of timesteps corresponding to this bin
+            if(length(ibin) > 1){
+              nc_foot_sum[, , jj] <- apply(nc_foot[ , , ibin], FUN = sum, MARGIN = c(1,2))  #sum over bin's timesteps
+            } else{
+              nc_foot_sum[, , jj] <- nc_foot[ , , ibin] #get the lat/lon components even if 1 timestep
+            }
+        }
+
+    } else {
+        # if footprint has 1 time step, then dim(nc_foot) = lon x lat, and must be
+        # converted to lon x lat x 1
+        nc_foot_sum <- array(0, dim = c(default_xy_dims, 1))
+        nc_foot_sum[, , 1] <- nc_foot
+    }
 
   # create 2-D arrays with dims = c(ncells, ntimebins).
   if (foot_dim_lonxlat) {
@@ -165,7 +221,7 @@ for (ii in 1:nobs) {
   for (jj in 1:nbins) {
 
     # itime denotes the index of inversion timestep i.e. which H file to append to
-    itime <- run$values[jj]
+    itime <- itime <- which(time_bins == unique(times_cut)[jj])
 
     # INNER DOMAIN: format the data to include only nonzero foot values (dense format)
     inonzero <- which(nc_foot_vec[, jj] != 0)  #gets the cell indices of non-zero foot vals
@@ -173,7 +229,7 @@ for (ii in 1:nobs) {
     Hsave <- cbind(rep(ii, length(inonzero)), inonzero, Hvec_nonzero)  #ii is obs index
 
     # append this obs' values to the file
-    fwrite(as.data.frame(Hsave), paste0("H/H", formatC(itime, width = filename_width, flag = "0"), ".txt"),
+    fwrite(as.data.frame(Hsave), paste0("H/H", formatC(itime, width = 3, flag = "0"), ".txt"),
            row.names = F, col.names = F, append = T, sep = ' ')
 
     if (make_H_outer) {
@@ -184,7 +240,7 @@ for (ii in 1:nobs) {
       Hsave_outer <- cbind(rep(ii, length(inonzero_outer)), inonzero_outer, Hvec_nonzero_outer)  #ii is obs index
 
       # append this obs' values to the file
-      fwrite(as.data.frame(Hsave_outer), paste0("H_outer/H", formatC(itime, width = filename_width, flag = "0"),
+      fwrite(as.data.frame(Hsave_outer), paste0("H_outer/H", formatC(itime, width = 3, flag = "0"),
                                  ".txt"), row.names = F, col.names = F, append = T, sep = ' ')
     } #end if make_H_outer
 
@@ -199,9 +255,25 @@ print("replacing footprint .txt files with .rds files")
 ### ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # load in time vars to specify the span of time over which we want subsetted obs
+y1 <- obs_year_start
+y2 <- obs_year_end
+
+m1 <- obs_month_start
+m2 <- obs_month_end
+
+d1 <- obs_day_start
+d2 <- obs_day_end
+
+h1 <- obs_hour_start
+h2 <- obs_hour_end
+
+mn1 <- obs_min_start
+mn2 <- obs_min_end
 
 # prepare to aggregate footprint files based on day
-time_bins_daily <- seq(from = obs_start_POSIX, to = obs_end_POSIX + 3600, by = 24 * 3600)
+time_bins_daily <- seq(from = ISOdatetime(y1, m1, d1, h1, mn1, 0, tz = "UTC"), to = ISOdatetime(y2,
+                       m2, d2, h2, mn2, 0, tz = "UTC") + 3600, by = 24 * 3600)
+
 
 times_cut_day <- as.POSIXct(cut(recep_times, breaks = time_bins_daily), tz = "UTC")
 
@@ -218,12 +290,12 @@ for (ii in 1:ntimes) {
   print(paste("re-constructing compact H matrix for timestep", ii))
 
   # inner H files
-  Hi <- fread(paste0("H/H", formatC(ii, width = filename_width, flag = "0"), ".txt"))
+  Hi <- fread(paste0("H/H", formatC(ii, width = 3, flag = "0"), ".txt"))
   Hsave <- Hi
 
   if (make_H_outer) {
     # outer H files
-    Hi_outer <- fread(paste0("H_outer/H", formatC(ii, width = filename_width, flag = "0"), ".txt"))
+    Hi_outer <- fread(paste0("H_outer/H", formatC(ii, width = 3, flag = "0"), ".txt"))
     Hsave_outer <- Hi_outer
   } #end if make_H_outer
 
@@ -318,13 +390,13 @@ for (ii in 1:ntimes) {
   }
 
   # save files whether or not aggregation has occurred
-  saveRDS(Hsave, paste0("H/H", formatC(ii, width = filename_width, flag = "0"), ".rds"))
-  system(paste0("rm H/H", formatC(ii, width = filename_width, flag = "0"), ".txt"))  #remove original text file which is large
+  saveRDS(Hsave, paste0("H/H", formatC(ii, width = 3, flag = "0"), ".rds"))
+  system(paste0("rm H/H", formatC(ii, width = 3, flag = "0"), ".txt"))  #remove original text file which is large
 
   if (make_H_outer) {
 
-    saveRDS(Hsave_outer, paste0("H_outer/H", formatC(ii, width = filename_width, flag = "0"), ".rds"))
-    system(paste0("rm H_outer/H", formatC(ii, width = filename_width, flag = "0"), ".txt"))  #remove original text file which is large
+    saveRDS(Hsave_outer, paste0("H_outer/H", formatC(ii, width = 3, flag = "0"), ".rds"))
+    system(paste0("rm H_outer/H", formatC(ii, width = 3, flag = "0"), ".txt"))  #remove original text file which is large
 
   } #end if make_H_outer
 }

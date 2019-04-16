@@ -18,7 +18,6 @@ source("config.r")
 source("src/post_uncert_func.r") #function to extract posterior gridded uncertainty
 
 # specify start/end from config.r variables
-# establish the centers of time steps
 flux_times <- seq(from = flux_start_POSIX, to = flux_end_POSIX-1, by = flux_t_res) #flux_t_res defined in config.r
 
 # load spatial covariance matrix E
