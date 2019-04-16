@@ -20,7 +20,7 @@ source("config.r")
 # ~~~~~~~~~~~~~~~~ define a function to read sparse H file ~~~~~~~~~~~~~~~~~ #
 read_sparse_h_outer <- function(timestep, nobs, ncells) {
 
-    Hi_tmp <- readRDS(paste0("H_outer/H", formatC(timestep, width = 3, flag = "0"), ".rds"))
+    Hi_tmp <- readRDS(paste0("H_outer/H", formatC(timestep, width = filename_width, flag = "0"), ".rds"))
     # Populate the H-slice matrix (nobs x ncells) with zeros
     Hi <- array(0, dim = c(nobs, ncells))
 
@@ -113,5 +113,5 @@ if (include_bio) {
 
     filepath <- paste0(out_path, "Hs_bio.rds")
     saveRDS(Hsbio, filepath)
-    
+
 }

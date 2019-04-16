@@ -91,25 +91,8 @@ if (make_H_outer) {
 
 # ~~~~~~~~~~~~~~~~~~~~~~~ create time bins ~~~~~~~~~~~~~~~~~~~~~~~#
 
-# specify start/end from config.r variables
-y1 <- flux_year_start
-y2 <- flux_year_end
-
-m1 <- flux_month_start
-m2 <- flux_month_end
-
-d1 <- flux_day_start
-d2 <- flux_day_end
-
-h1 <- flux_hour_start
-h2 <- flux_hour_end
-
-mn1 <- flux_min_start
-mn2 <- flux_min_end
-
 # list all desired obs times
-time_bins <- seq(from = ISOdatetime(y1, m1, d1, h1, mn1, 0, tz = "UTC"),
-                 to = ISOdatetime(y2,m2, d2, h2, mn2, 0, tz = "UTC"), by = flux_t_res) # flux_t_res defined in config.r
+time_bins <- seq(from = flux_start_POSIX, to = flux_end_POSIX, by = flux_t_res) # flux_t_res defined in config.r
 
 
 # create H files for each timestep - we will use TXT files and later append to
@@ -124,7 +107,7 @@ for (ii in 1:ntimes) {
   colnames(Hii) <- c("obs_index", "cell_index", "foot_value")
 
   # make empty rds files for each timestep
-  tmpfile <- paste0("H/H", formatC(ii, width = 3, flag = "0"), ".txt")
+  tmpfile <- paste0("H/H", formatC(ii, width = filename_width, flag = "0"), ".txt")
   fileWrite <- file(tmpfile, "wt")
   write.table(Hii, fileWrite, row.names = F)
   close(fileWrite)
@@ -132,7 +115,7 @@ for (ii in 1:ntimes) {
   if (make_H_outer) {
 
     # do the same for outer files
-    tmpfile_outer <- paste0("H_outer/H", formatC(ii, width = 3, flag = "0"), ".txt")
+    tmpfile_outer <- paste0("H_outer/H", formatC(ii, width = filename_width, flag = "0"), ".txt")
     fileWrite <- file(tmpfile_outer, "wt")
     write.table(Hii, fileWrite, row.names = F)
     close(fileWrite)
@@ -190,7 +173,7 @@ for (ii in 1:nobs) {
     Hsave <- cbind(rep(ii, length(inonzero)), inonzero, Hvec_nonzero)  #ii is obs index
 
     # append this obs' values to the file
-    fwrite(as.data.frame(Hsave), paste0("H/H", formatC(itime, width = 3, flag = "0"), ".txt"),
+    fwrite(as.data.frame(Hsave), paste0("H/H", formatC(itime, width = filename_width, flag = "0"), ".txt"),
            row.names = F, col.names = F, append = T, sep = ' ')
 
     if (make_H_outer) {
@@ -201,7 +184,7 @@ for (ii in 1:nobs) {
       Hsave_outer <- cbind(rep(ii, length(inonzero_outer)), inonzero_outer, Hvec_nonzero_outer)  #ii is obs index
 
       # append this obs' values to the file
-      fwrite(as.data.frame(Hsave_outer), paste0("H_outer/H", formatC(itime, width = 3, flag = "0"),
+      fwrite(as.data.frame(Hsave_outer), paste0("H_outer/H", formatC(itime, width = filename_width, flag = "0"),
                                  ".txt"), row.names = F, col.names = F, append = T, sep = ' ')
     } #end if make_H_outer
 
@@ -216,25 +199,9 @@ print("replacing footprint .txt files with .rds files")
 ### ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # load in time vars to specify the span of time over which we want subsetted obs
-y1 <- obs_year_start
-y2 <- obs_year_end
-
-m1 <- obs_month_start
-m2 <- obs_month_end
-
-d1 <- obs_day_start
-d2 <- obs_day_end
-
-h1 <- obs_hour_start
-h2 <- obs_hour_end
-
-mn1 <- obs_min_start
-mn2 <- obs_min_end
 
 # prepare to aggregate footprint files based on day
-time_bins_daily <- seq(from = ISOdatetime(y1, m1, d1, h1, mn1, 0, tz = "UTC"), to = ISOdatetime(y2,
-                       m2, d2, h2, mn2, 0, tz = "UTC") + 3600, by = 24 * 3600)
-
+time_bins_daily <- seq(from = obs_start_POSIX, to = obs_end_POSIX + 3600, by = 24 * 3600)
 
 times_cut_day <- as.POSIXct(cut(recep_times, breaks = time_bins_daily), tz = "UTC")
 
@@ -251,12 +218,12 @@ for (ii in 1:ntimes) {
   print(paste("re-constructing compact H matrix for timestep", ii))
 
   # inner H files
-  Hi <- fread(paste0("H/H", formatC(ii, width = 3, flag = "0"), ".txt"))
+  Hi <- fread(paste0("H/H", formatC(ii, width = filename_width, flag = "0"), ".txt"))
   Hsave <- Hi
 
   if (make_H_outer) {
     # outer H files
-    Hi_outer <- fread(paste0("H_outer/H", formatC(ii, width = 3, flag = "0"), ".txt"))
+    Hi_outer <- fread(paste0("H_outer/H", formatC(ii, width = filename_width, flag = "0"), ".txt"))
     Hsave_outer <- Hi_outer
   } #end if make_H_outer
 
@@ -351,13 +318,13 @@ for (ii in 1:ntimes) {
   }
 
   # save files whether or not aggregation has occurred
-  saveRDS(Hsave, paste0("H/H", formatC(ii, width = 3, flag = "0"), ".rds"))
-  system(paste0("rm H/H", formatC(ii, width = 3, flag = "0"), ".txt"))  #remove original text file which is large
+  saveRDS(Hsave, paste0("H/H", formatC(ii, width = filename_width, flag = "0"), ".rds"))
+  system(paste0("rm H/H", formatC(ii, width = filename_width, flag = "0"), ".txt"))  #remove original text file which is large
 
   if (make_H_outer) {
 
-    saveRDS(Hsave_outer, paste0("H_outer/H", formatC(ii, width = 3, flag = "0"), ".rds"))
-    system(paste0("rm H_outer/H", formatC(ii, width = 3, flag = "0"), ".txt"))  #remove original text file which is large
+    saveRDS(Hsave_outer, paste0("H_outer/H", formatC(ii, width = filename_width, flag = "0"), ".rds"))
+    system(paste0("rm H_outer/H", formatC(ii, width = filename_width, flag = "0"), ".txt"))  #remove original text file which is large
 
   } #end if make_H_outer
 }

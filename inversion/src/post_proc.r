@@ -18,24 +18,8 @@ source("config.r")
 source("src/post_uncert_func.r") #function to extract posterior gridded uncertainty
 
 # specify start/end from config.r variables
-y1 <- flux_year_start
-y2 <- flux_year_end
-
-m1 <- flux_month_start
-m2 <- flux_month_end
-
-d1 <- flux_day_start
-d2 <- flux_day_end
-
-h1 <- flux_hour_start
-h2 <- flux_hour_end
-
-mn1 <- flux_min_start
-mn2 <- flux_min_end
-
 # establish the centers of time steps
-flux_times <- seq(from = ISOdatetime(y1, m1, d1, h1, mn1, 0, tz = "UTC") + flux_t_res/2,
-    to = ISOdatetime(y2, m2, d2, h2, mn2, 0, tz = "UTC"), by = flux_t_res) #flux_t_res defined in config.r
+flux_times <- seq(from = flux_start_POSIX, to = flux_end_POSIX-1, by = flux_t_res) #flux_t_res defined in config.r
 
 # load spatial covariance matrix E
 sp_cov_file <- paste0(out_path, "sp_cov.rds")
@@ -125,7 +109,7 @@ for (ii in 1:ntimes) {
 # ~~~~~~~~~~~~~~~~~ save to netcdf file ~~~~~~~~~~~~~~~~~~~ #
 
 # define dimension variables
-time_dim <- ncdim_def("time", "seconds_since_1970_01_01", as.numeric(flux_times), longname = "center of time-step, seconds since R epoch: 1970-01-01 00:00:00")
+time_dim <- ncdim_def("time", "seconds_since_1970_01_01", as.numeric(flux_times), longname = "beginning of time-step, seconds since R epoch: 1970-01-01 00:00:00")
 lat_dim <- ncdim_def("lat", "degrees_north", lat, longname="latitude (center of cell)")
 lon_dim <- ncdim_def("lon", "degrees_east", lon, longname="longitude (center of cell)")
 

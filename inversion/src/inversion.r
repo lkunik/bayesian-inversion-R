@@ -19,26 +19,9 @@ library(lubridate)
 # run dependent scripts
 source("config.r")
 
-
-# specify start/end times
-y1 <- flux_year_start
-y2 <- flux_year_end
-
-m1 <- flux_month_start
-m2 <- flux_month_end
-
-d1 <- flux_day_start
-d2 <- flux_day_end
-
-h1 <- flux_hour_start
-h2 <- flux_hour_end
-
-mn1 <- flux_min_start
-mn2 <- flux_min_end
-
 # list all desired obs times
-flux_times <- seq(from = ISOdatetime(y1, m1, d1, h1, mn1, 0, tz = "UTC") + (flux_t_res/2),
-    to = ISOdatetime(y2, m2, d2, h2, mn2, 0, tz = "UTC"), by = flux_t_res) #flux_t_res defined in config.r
+flux_times <- seq(from = flux_start_POSIX + (flux_t_res/2),
+    to = flux_end_POSIX, by = flux_t_res) #flux_t_res defined in config.r
 
 
 # ~~~~~~~~~~~~~ load in necessary files ~~~~~~~~~~~~~~~~~#
@@ -77,7 +60,7 @@ additive_cor <- array(0, dim = c(1, 0))
 
 # load in HQ files - ntimes defined in config.r
 for (ii in 1:ntimes) {
-    HQ_i <- readRDS(paste0("HQ/HQ", formatC(ii, width = 3, flag = "0"), ".rds"))
+    HQ_i <- readRDS(paste0("HQ/HQ", formatC(ii, width = filename_width, flag = "0"), ".rds"))
     HQTi_s <- t(HQ_i) %*% HQHtR_zHsp
     additive_cor <- c(additive_cor, HQTi_s)
 

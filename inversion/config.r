@@ -124,11 +124,21 @@ aggregate_obs <- T
 # if so, what is the required minimum number of observations within the subsetted time per day?
 min_agg_obs <- 2
 
+# Define POSIX times for flux/obs start/end
+flux_start_POSIX <- ISOdatetime(flux_year_start, flux_month_start, flux_day_start,
+    flux_hour_start, flux_min_start, 0, tz = "UTC")
+
+flux_end_POSIX <- ISOdatetime(flux_year_end, flux_month_end, flux_day_end,
+     flux_hour_end, flux_min_end, 0, tz = "UTC")
+
+obs_start_POSIX <- ISOdatetime(obs_year_start, obs_month_start, obs_day_start,
+    obs_hour_start, obs_min_start, 0, tz = "UTC")
+
+obs_end_POSIX <- ISOdatetime(obs_year_end, obs_month_end, obs_day_end,
+     obs_hour_end, obs_min_end, 0, tz = "UTC")
+
 # get the number of days
-ndays <- length(seq(from = ISOdatetime(obs_year_start, obs_month_start, obs_day_start,
-    obs_hour_start, obs_min_start, 0, tz = "UTC"), to = ISOdatetime(obs_year_end,
-    obs_month_end, obs_day_end, obs_hour_end, obs_min_end, 0, tz = "UTC"), by = 24 *
-    3600))
+ndays <- length(seq(from = obs_start_POSIX, to = obs_end_POSIX, by = 24 * 3600))
 
 # horizontal lengthscale parameter, in km
 ls <- 6
@@ -137,10 +147,10 @@ ls <- 6
 lt <- 2
 
 # Compute the number of time steps
-ntimes <- length(seq(from = ISOdatetime(flux_year_start, flux_month_start, flux_day_start,
-    flux_hour_start, flux_min_start, 0, tz = "UTC"), to = ISOdatetime(flux_year_end,
-    flux_month_end, flux_day_end, flux_hour_end, flux_min_end, 0, tz = "UTC"), by = flux_t_res)) -
-    1
+ntimes <- length(seq(from = flux_start_POSIX, to = flux_end_POSIX,
+            by = flux_t_res)) - 1
+
+filename_width <- nchar(ntimes) #will be an integer
 
 # time steps for posterior covariance V_shat, the timesteps to aggregate over
 tstart <- 1

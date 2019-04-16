@@ -17,26 +17,9 @@ source("config.r")
 
 # ~~~~~~~~~~~~~~~~~~~~~~~ create time bins ~~~~~~~~~~~~~~~~~~~~~~~#
 
-# specify start/end
-y1 <- flux_year_start
-y2 <- flux_year_end
-
-m1 <- flux_month_start
-m2 <- flux_month_end
-
-d1 <- flux_day_start
-d2 <- flux_day_end
-
-h1 <- flux_hour_start
-h2 <- flux_hour_end
-
-mn1 <- flux_min_start
-mn2 <- flux_min_end
-
 # establish the markers for the time-bin cutoffs (includes an end-timestamp after
 # the last flux hour for the purpose of the cut() function)
-time_bins <- seq(from = ISOdatetime(y1, m1, d1, h1, mn1, 0, tz = "UTC"), to = ISOdatetime(y2,
-    m2, d2, h2, mn2, 0, tz = "UTC"), by = flux_t_res) #flux_t_res defined in config.r
+time_bins <- seq(from = flux_start_POSIX, to = flux_end_POSIX, by = flux_t_res) #flux_t_res defined in config.r
 
 
 

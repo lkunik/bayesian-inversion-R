@@ -59,7 +59,7 @@ get_post_uncert_time <- function(tstart, tstop, sp_cov, tmp_cov, sigma, R, HQHt,
     HQsum <- array(0, dim = c(nobs, ncells))
     # make HQsum
     for (ii in tstart:tstop) {
-        HQ_file <- paste("HQ/HQ", formatC(ii, width = 3, flag = "0"), ".rds", sep = "")
+        HQ_file <- paste("HQ/HQ", formatC(ii, width = filename_width, flag = "0"), ".rds", sep = "")
         HQii <- readRDS(HQ_file)
         HQsum <- HQsum + HQii
     }

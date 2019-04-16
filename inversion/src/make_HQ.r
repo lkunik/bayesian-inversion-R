@@ -20,7 +20,7 @@ source("config.r")
 # ~~~~~~~~~~~~~ define a function to read sparse H file ~~~~~~~~~~~~~~~ #
 read_sparse_h <- function(timestep, nobs, ncells) {
 
-    Hi_tmp <- readRDS(paste0("H/H", formatC(timestep, width = 3, flag = "0"), ".rds"))
+    Hi_tmp <- readRDS(paste0("H/H", formatC(timestep, width = filename_width, flag = "0"), ".rds"))
     # Populate the H-slice matrix (nobs x ncells) with zeros
     Hi <- array(0, dim = c(nobs, ncells))
 
@@ -95,7 +95,7 @@ for (ii in 1:ntimes) {
         # load in the H file for time = jj
         Hjj <- read_sparse_h(jj, nobs, ncells)
         HDI <- HDI + (D[jj, ii] * Hjj %*% Isig_j) #add to total
-        
+
     } #end inner timestep for-loop
 
     # Get the sigma section for this chunk, in diagonal matrix
@@ -109,7 +109,7 @@ for (ii in 1:ntimes) {
     HQHt <- HQHt + HQ %*% t(Hii)
 
     # ~~~~~~~~~~~~~~~ save HQ-slice file ~~~~~~~~~~~~~~~#
-    filepath <- paste0("HQ/HQ", formatC(ii, width = 3, flag = "0"), ".rds")
+    filepath <- paste0("HQ/HQ", formatC(ii, width = filename_width, flag = "0"), ".rds")
     print(paste0("writing file ", filepath))
     saveRDS(HQ, filepath)
 

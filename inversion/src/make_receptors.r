@@ -17,25 +17,8 @@ source("config.r")
 
 # ~~~~~~~~~~~~~~~~~~~ set up time parameters ~~~~~~~~~~~~~~~~~~~#
 
-# receptor start/end parameters
-y1 <- obs_year_start
-y2 <- obs_year_end
-
-m1 <- obs_month_start
-m2 <- obs_month_end
-
-d1 <- obs_day_start
-d2 <- obs_day_end
-
-h1 <- obs_hour_start
-h2 <- obs_hour_end
-
-mn1 <- obs_min_start
-mn2 <- obs_min_end
-
 # list all desired obs times
-master_times_all <- seq(from = ISOdatetime(y1, m1, d1, h1, mn1, 0, tz = "UTC"), to = ISOdatetime(y2,
-    m2, d2, h2, mn2, 0, tz = "UTC"), by = obs_t_res)  # obs_t_res defined in config.r
+master_times_all <- seq(from = obs_start_POSIX, to = obs_end_POSIX, by = obs_t_res)  # obs_t_res defined in config.r
 
 # remove times outside of the desired subset times
 isubset <- which(hour(master_times_all) %in% subset_hours_utc)
@@ -144,9 +127,7 @@ if (aggregate_obs) {
     # make the new *aggregated* receptor list, to be used later on
 
     # prepare to aggregate footprint files based on day
-    time_bins_daily <- seq(from = ISOdatetime(y1, m1, d1, h1, mn1, 0, tz = "UTC"),
-        to = ISOdatetime(y2, m2, d2, h2, mn2, 0, tz = "UTC") + 3600, by = 24 * 3600)
-
+    time_bins_daily <- seq(from = obs_start_POSIX, to = obs_end_POSIX + 3600, by = 24 * 3600)
     times_cut_day <- as.POSIXct(cut(recep_times, breaks = time_bins_daily), tz = "UTC")
 
     # establish the new receptor list

@@ -76,7 +76,7 @@ Hsprior <- rep(0, nobs)
 
 #loop through timesteps and convolve fluxes with footprints
 for (ii in 1:ntimes) {
-    H_tmp <- readRDS(paste0("H/H", formatC(ii, width = 3, flag = "0"), ".rds"))
+    H_tmp <- readRDS(paste0("H/H", formatC(ii, width = filename_width, flag = "0"), ".rds"))
     Hi <- array(0, dim = c(nobs, ncells))
 
     # checking if Hi_outer is empty
