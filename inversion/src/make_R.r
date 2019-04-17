@@ -172,10 +172,6 @@ isites <- lapply(sites, FUN = function(x) grep(x, recep_names))
 lonlat_domain <- readRDS(lonlat_domain_file)
 ncells <- nrow(lonlat_domain)
 
-# load in z file - anthropogenic enhancements
-z_file <- paste0(out_path, "z.rds")
-z <- readRDS(z_file)
-
 # Model Data Mismatch is made up of multiple parts R = R_part + R_aggr + R_eddy +
 # R_bkgd + R_transPBL + R_transWIND + R_instr + R_bio + R_other
 

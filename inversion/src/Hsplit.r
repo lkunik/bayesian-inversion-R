@@ -124,7 +124,7 @@ for (ii in 1:ntimes) {
   colnames(Hii) <- c("obs_index", "cell_index", "foot_value")
 
   # make empty rds files for each timestep
-  tmpfile <- paste0("H/H", formatC(ii, width = 3, flag = "0"), ".txt")
+  tmpfile <- paste0("H/H", formatC(ii, width = filename_width, flag = "0"), ".txt")
   fileWrite <- file(tmpfile, "wt")
   write.table(Hii, fileWrite, row.names = F)
   close(fileWrite)
@@ -132,7 +132,7 @@ for (ii in 1:ntimes) {
   if (make_H_outer) {
 
     # do the same for outer files
-    tmpfile_outer <- paste0("H_outer/H", formatC(ii, width = 3, flag = "0"), ".txt")
+    tmpfile_outer <- paste0("H_outer/H", formatC(ii, width = filename_width, flag = "0"), ".txt")
     fileWrite <- file(tmpfile_outer, "wt")
     write.table(Hii, fileWrite, row.names = F)
     close(fileWrite)
@@ -229,7 +229,7 @@ for (ii in 1:nobs) {
     Hsave <- cbind(rep(ii, length(inonzero)), inonzero, Hvec_nonzero)  #ii is obs index
 
     # append this obs' values to the file
-    fwrite(as.data.frame(Hsave), paste0("H/H", formatC(itime, width = 3, flag = "0"), ".txt"),
+    fwrite(as.data.frame(Hsave), paste0("H/H", formatC(itime, width = filename_width, flag = "0"), ".txt"),
            row.names = F, col.names = F, append = T, sep = ' ')
 
     if (make_H_outer) {
@@ -240,7 +240,7 @@ for (ii in 1:nobs) {
       Hsave_outer <- cbind(rep(ii, length(inonzero_outer)), inonzero_outer, Hvec_nonzero_outer)  #ii is obs index
 
       # append this obs' values to the file
-      fwrite(as.data.frame(Hsave_outer), paste0("H_outer/H", formatC(itime, width = 3, flag = "0"),
+      fwrite(as.data.frame(Hsave_outer), paste0("H_outer/H", formatC(itime, width = filename_width, flag = "0"),
                                  ".txt"), row.names = F, col.names = F, append = T, sep = ' ')
     } #end if make_H_outer
 
@@ -290,12 +290,12 @@ for (ii in 1:ntimes) {
   print(paste("re-constructing compact H matrix for timestep", ii))
 
   # inner H files
-  Hi <- fread(paste0("H/H", formatC(ii, width = 3, flag = "0"), ".txt"))
+  Hi <- fread(paste0("H/H", formatC(ii, width = filename_width, flag = "0"), ".txt"))
   Hsave <- Hi
 
   if (make_H_outer) {
     # outer H files
-    Hi_outer <- fread(paste0("H_outer/H", formatC(ii, width = 3, flag = "0"), ".txt"))
+    Hi_outer <- fread(paste0("H_outer/H", formatC(ii, width = filename_width, flag = "0"), ".txt"))
     Hsave_outer <- Hi_outer
   } #end if make_H_outer
 
@@ -390,13 +390,13 @@ for (ii in 1:ntimes) {
   }
 
   # save files whether or not aggregation has occurred
-  saveRDS(Hsave, paste0("H/H", formatC(ii, width = 3, flag = "0"), ".rds"))
-  system(paste0("rm H/H", formatC(ii, width = 3, flag = "0"), ".txt"))  #remove original text file which is large
+  saveRDS(Hsave, paste0("H/H", formatC(ii, width = filename_width, flag = "0"), ".rds"))
+  system(paste0("rm H/H", formatC(ii, width = filename_width, flag = "0"), ".txt"))  #remove original text file which is large
 
   if (make_H_outer) {
 
-    saveRDS(Hsave_outer, paste0("H_outer/H", formatC(ii, width = 3, flag = "0"), ".rds"))
-    system(paste0("rm H_outer/H", formatC(ii, width = 3, flag = "0"), ".txt"))  #remove original text file which is large
+    saveRDS(Hsave_outer, paste0("H_outer/H", formatC(ii, width = filename_width, flag = "0"), ".rds"))
+    system(paste0("rm H_outer/H", formatC(ii, width = filename_width, flag = "0"), ".txt"))  #remove original text file which is large
 
   } #end if make_H_outer
 }
